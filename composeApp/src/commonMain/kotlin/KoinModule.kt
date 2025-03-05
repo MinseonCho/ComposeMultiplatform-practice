@@ -1,9 +1,12 @@
 import data.datasource.UrlLocalDataSource
 import data.repository.UrlRepositoryImpl
 import domain.repository.UrlRepository
+import domain.usecase.GetUrlHistoryUseCase
+import domain.usecase.SaveUrlUseCase
 import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.bind
@@ -19,6 +22,7 @@ fun initKoin(config: KoinAppDeclaration? = null) =
             provideViewModelModule
                     + provideDataSourceModule
                     + provideRepositoryModule
+                    + provideUseCaseModule
                     + platformModule()
         )
     }
@@ -33,4 +37,9 @@ val provideDataSourceModule = module {
 
 val provideRepositoryModule = module {
     singleOf(::UrlRepositoryImpl).bind(UrlRepository::class)
+}
+
+val provideUseCaseModule = module {
+    factoryOf(::GetUrlHistoryUseCase)
+    factoryOf(::SaveUrlUseCase)
 }
