@@ -2,7 +2,7 @@ import data.datasource.UrlLocalDataSource
 import data.repository.UrlRepositoryImpl
 import domain.repository.UrlRepository
 import domain.usecase.GetUrlHistoryUseCase
-import domain.usecase.SaveUrlUseCase
+import domain.usecase.SaveUrl
 import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -41,5 +41,5 @@ val provideRepositoryModule = module {
 
 val provideUseCaseModule = module {
     factoryOf(::GetUrlHistoryUseCase)
-    factoryOf(::SaveUrlUseCase)
+    factoryOf(::SaveUrl)
 }

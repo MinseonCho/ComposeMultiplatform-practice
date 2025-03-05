@@ -5,9 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import domain.usecase.SaveUrl
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.decodeURLPart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -15,7 +17,9 @@ import kotlinx.coroutines.launch
 import model.QueryItem
 import util.clearAndAddAll
 
-class PageViewModel : ViewModel() {
+class PageViewModel(
+    private val saveUrl: SaveUrl,
+) : ViewModel() {
 
     var urlUiState by mutableStateOf("")
         private set
@@ -130,5 +134,18 @@ class PageViewModel : ViewModel() {
                     value = value
                 )
             }
+    }
+
+    fun onSaveButtonClicked() {
+       saveUrl()
+    }
+
+    private fun saveUrl() {
+        viewModelScope.launch(Dispatchers.IO) {
+            saveUrl.invoke(
+                url = urlState,
+                memo = null
+            )
+        }
     }
 }

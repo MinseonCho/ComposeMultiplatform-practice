@@ -2,7 +2,7 @@ package domain.usecase
 
 import domain.repository.UrlRepository
 
-class SaveUrlUseCase(
+class SaveUrl(
     private val repository: UrlRepository,
 ) {
     suspend operator fun invoke(
