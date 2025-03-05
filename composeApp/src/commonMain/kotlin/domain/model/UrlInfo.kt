@@ -1,6 +1,6 @@
 package domain.model
 
-data class Url(
+data class UrlInfo(
     val id: Long = 0,
     val url: String,
     val memo: String,

@@ -1,9 +1,9 @@
 package domain.repository
 
-import domain.model.Url
+import domain.model.UrlInfo
 
 interface UrlRepository {
-    suspend fun getAllUrls(): List<Url>
+    suspend fun getAllUrls(): List<UrlInfo>
     suspend fun insertUrl(
         url: String,
         memo: String?,
