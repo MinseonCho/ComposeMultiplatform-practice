@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +53,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import model.QueryItem
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -66,6 +66,7 @@ fun PageScreen(
     sendLogTexts: ImmutableList<String>,
     pageViewModel: PageViewModel = koinViewModel<PageViewModel>(),
 ) {
+    val uiState by pageViewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -107,8 +108,8 @@ fun PageScreen(
                         ) {
                             pageViewModel.onSaveButtonClicked()
                         },
-                    tint = if (true) { // TODO(mscho): 3/5/25 조건 수정
-                        ColorConstant._B4B4B4
+                    tint = if (uiState.isUrlSaved) {
+                        ColorConstant._E6A358
                     } else {
                         ColorConstant._B4B4B4
                     }
@@ -116,7 +117,7 @@ fun PageScreen(
             }
 
             UrlField(
-                url = pageViewModel.urlUiState,
+                url = uiState.url,
                 onUrlChanged = pageViewModel::onUrlChanged,
                 onSendButtonClicked = pageViewModel::onSendButtonClicked
             )
@@ -124,7 +125,7 @@ fun PageScreen(
             Spacer(modifier = Modifier.height(5.dp))
 
             QueryContent(
-                queries = pageViewModel.queryList.toImmutableList(),
+                queries = uiState.queries,
                 onKeyChanged = pageViewModel::onQueryKeyChanged,
                 onValueChanged = pageViewModel::onQueryValueChanged,
                 onCheckedChanged = pageViewModel::onCheckedChanged,
@@ -144,9 +145,9 @@ fun PageScreen(
 @Composable
 fun QueryContent(
     queries: ImmutableList<QueryItem>,
-    onKeyChanged: (Int, String) -> Unit,
-    onValueChanged: (Int, String) -> Unit,
-    onCheckedChanged: (Int, Boolean) -> Unit,
+    onKeyChanged: (QueryItem, String) -> Unit,
+    onValueChanged: (QueryItem, String) -> Unit,
+    onCheckedChanged: (QueryItem, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -226,9 +227,9 @@ fun LogBody(
 @Composable
 fun QueryTable(
     queries: ImmutableList<QueryItem>,
-    onKeyChanged: (Int, String) -> Unit,
-    onValueChanged: (Int, String) -> Unit,
-    onCheckedChanged: (Int, Boolean) -> Unit,
+    onKeyChanged: (QueryItem, String) -> Unit,
+    onValueChanged: (QueryItem, String) -> Unit,
+    onCheckedChanged: (QueryItem, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -244,9 +245,8 @@ fun QueryTable(
             Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
         }
 
-        itemsIndexed(queries) { index, query ->
+        items(queries) { query ->
             SingleQuery(
-                position = index,
                 queryItem = query,
                 onCheckedChanged = onCheckedChanged,
                 onKeyChanged = onKeyChanged,
@@ -301,11 +301,10 @@ fun QueryTableHeaderRow(
 
 @Composable
 fun SingleQuery(
-    position: Int,
     queryItem: QueryItem,
-    onCheckedChanged: (Int, Boolean) -> Unit,
-    onKeyChanged: (Int, String) -> Unit,
-    onValueChanged: (Int, String) -> Unit,
+    onKeyChanged: (QueryItem, String) -> Unit,
+    onValueChanged: (QueryItem, String) -> Unit,
+    onCheckedChanged: (QueryItem, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -321,7 +320,7 @@ fun SingleQuery(
                 uncheckedColor = ColorConstant._E8E8E8
             ),
             onCheckedChange = { isChecked ->
-                onCheckedChanged(position, isChecked)
+                onCheckedChanged(queryItem, isChecked)
             }
         )
 
@@ -330,7 +329,7 @@ fun SingleQuery(
         InputField(
             text = queryItem.key,
             onValueChanged = {
-                onKeyChanged(position, it)
+                onKeyChanged(queryItem, it)
             },
             modifier = Modifier
                 .padding(5.dp)
@@ -343,7 +342,7 @@ fun SingleQuery(
         InputField(
             text = queryItem.value,
             onValueChanged = {
-                onValueChanged(position, it)
+                onValueChanged(queryItem, it)
             },
             modifier = Modifier
                 .padding(horizontal = 5.dp)
