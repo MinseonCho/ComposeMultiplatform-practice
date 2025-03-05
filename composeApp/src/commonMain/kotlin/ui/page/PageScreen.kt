@@ -46,18 +46,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import model.QueryItem
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 import ui.style.ColorConstant
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun PageScreen(
     onSendDeeplinkClicked: (String) -> Unit,
     modifier: Modifier = Modifier,
     sendLogTexts: ImmutableList<String>,
-    pageViewModel: PageViewModel = viewModel { PageViewModel() },
+    pageViewModel: PageViewModel = koinViewModel<PageViewModel>(),
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
 

@@ -46,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import model.AdbDevice
+import org.koin.core.context.stopKoin
 import ui.NavigationItem
 import ui.page.InputField
 import ui.page.PageScreen
@@ -54,7 +55,15 @@ import ui.style.ColorConstant._E6A358
 import ui.utils.CustomDialog
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication, title = "KotlinProject") {
+    initKoin()
+
+    Window(
+        onCloseRequest = {
+            stopKoin() // 앱 종료 시 Koin 정리
+            exitApplication()
+        },
+        title = "KotlinProject")
+    {
         val viewModel = remember {
             MainViewModel()
         }
