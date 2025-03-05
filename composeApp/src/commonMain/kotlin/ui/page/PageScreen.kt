@@ -42,6 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.launch
 import model.QueryItem
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -68,12 +70,22 @@ fun PageScreen(
 ) {
     val uiState by pageViewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         pageViewModel.eventFlow.collect { event ->
             when (event) {
                 is PageEvent.TriggerUrl -> {
                     onSendDeeplinkClicked(event.url)
+                }
+
+                is PageEvent.ShowSnackBar -> {
+                    coroutineScope.launch {
+                        snackBarHostState.currentSnackbarData?.dismiss()
+                        snackBarHostState.showSnackbar(
+                            message = event.message
+                        )
+                    }
                 }
             }
         }

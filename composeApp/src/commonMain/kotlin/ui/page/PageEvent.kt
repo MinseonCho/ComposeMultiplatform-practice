@@ -1,8 +1,12 @@
 package ui.page
 
-sealed class PageEvent {
+sealed interface PageEvent {
 
-    class TriggerUrl(
-        val url: String
-    ) : PageEvent()
+    data class TriggerUrl(
+        val url: String,
+    ) : PageEvent
+
+    data class ShowSnackBar(
+        val message: String,
+    ) : PageEvent
 }

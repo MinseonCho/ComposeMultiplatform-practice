@@ -26,6 +26,7 @@ class PageViewModel(
 
     private var url: String = ""
     private val queryMap = sortedMapOf<Int, QueryItem>()
+    private var savedUrl: String = ""
 
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
@@ -173,7 +174,11 @@ class PageViewModel(
     }
 
     fun onSaveButtonClicked() {
-       saveUrl()
+        if (url == savedUrl) {
+            showSnackBar(message = "이미 저장된 URL 입니다.⭐")
+        } else {
+            saveUrl()
+        }
     }
 
     private fun saveUrl() {
@@ -182,6 +187,16 @@ class PageViewModel(
                 url = url,
                 memo = null
             )
+            savedUrl = url
+            showSnackBar(message = "저장 완료 ⭐")
         }
+    }
+
+    private fun showSnackBar(message: String) {
+        _eventChannel.trySend(
+            PageEvent.ShowSnackBar(
+                message = message
+            )
+        )
     }
 }
