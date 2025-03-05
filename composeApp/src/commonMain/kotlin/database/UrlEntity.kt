@@ -9,5 +9,6 @@ data class UrlEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val url: String,
+    val memo: String?,
     val timestamp: Long = getCurrentTimeMillis()
 )
