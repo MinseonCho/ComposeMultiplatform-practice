@@ -7,5 +7,10 @@ import model.QueryItem
 data class PageUiState(
     val url: String = "",
     val queries: ImmutableList<QueryItem> = persistentListOf(),
-    val isUrlSaved: Boolean = false,
-)
+    val savedUrl: String = "",
+) {
+    val isUrlSaved: Boolean
+        get() = savedUrl.isNotBlank()
+                && url.isNotBlank()
+                && (url == savedUrl)
+}
