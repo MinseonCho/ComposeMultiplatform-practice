@@ -173,6 +173,11 @@ class PageViewModel(
     }
 
     fun onSaveButtonClicked() {
+        if (url.isBlank()) {
+            showSnackBar(message = "URL 이 비어있어요.😡")
+            return
+        }
+
         if (_uiState.value.isUrlSaved) {
             showSnackBar(message = "이미 저장된 URL 입니다.⭐")
         } else {
