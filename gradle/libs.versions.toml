@@ -22,11 +22,13 @@ lifecycleViewmodelCompose = "2.8.3"
 lifecycleRuntimeCompose = "2.8.3"
 ksp = "1.9.21-1.0.16"
 androidx-room = "2.7.0-alpha11"
+materialIconsExtended = "1.6.0"
 sqlite = "2.5.0-alpha01"
 koin = "3.6.0-Beta4"
 koin-compose = "1.2.0-Beta4"
 
 [libraries]
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -53,6 +55,7 @@ sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sql
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin-compose" }
 koin-composeVM = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin-compose" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }

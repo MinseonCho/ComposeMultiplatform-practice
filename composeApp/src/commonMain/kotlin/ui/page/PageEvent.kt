@@ -9,4 +9,8 @@ sealed interface PageEvent {
     data class ShowSnackBar(
         val message: String,
     ) : PageEvent
+
+    data class CopyUrlToClipboard(
+        val url: String,
+    ) : PageEvent
 }

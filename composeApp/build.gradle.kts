@@ -41,6 +41,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.composeVM)
             implementation(libs.sqlite.bundled)
+            implementation(libs.androidx.material.icons.extended)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

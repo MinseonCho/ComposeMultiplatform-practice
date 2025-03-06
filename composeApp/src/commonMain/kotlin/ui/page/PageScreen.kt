@@ -25,7 +25,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
@@ -48,6 +50,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
@@ -71,6 +75,7 @@ fun PageScreen(
     val uiState by pageViewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val clipboardManager = LocalClipboardManager.current
 
     LaunchedEffect(Unit) {
         pageViewModel.eventFlow.collect { event ->
@@ -86,6 +91,12 @@ fun PageScreen(
                             message = event.message
                         )
                     }
+                }
+
+                is PageEvent.CopyUrlToClipboard -> {
+                    clipboardManager.setText(
+                        AnnotatedString(text = event.url)
+                    )
                 }
             }
         }
@@ -103,17 +114,22 @@ fun PageScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            Box(
+            Row (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 10.dp, bottom = 6.dp)
+                    .padding(end = 10.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Spacer(modifier = Modifier.weight(1f))
                 Icon(
-                    imageVector = Icons.Rounded.Star,
+                    imageVector = if (uiState.isUrlSaved) {
+                        Icons.Rounded.Star
+                    } else {
+                        Icons.Rounded.StarOutline
+                    },
                     contentDescription = "save url",
                     modifier = Modifier
-                        .size(18.dp)
-                        .align(Alignment.CenterEnd)
+                        .size(20.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -125,6 +141,20 @@ fun PageScreen(
                     } else {
                         ColorConstant._B4B4B4
                     }
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Icon(
+                    imageVector = Icons.Default.ContentCopy,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(15.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            pageViewModel.onCopyButtonClicked()
+                        },
+                    tint = ColorConstant._B4B4B4
                 )
             }
 

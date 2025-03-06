@@ -174,7 +174,7 @@ class PageViewModel(
 
     fun onSaveButtonClicked() {
         if (url.isBlank()) {
-            showSnackBar(message = "URL 이 비어있어요.😡")
+            showSnackBar(message = "저장할 URL이 없어요.😡")
             return
         }
 
@@ -196,8 +196,22 @@ class PageViewModel(
                     savedUrl = url
                 )
             }
-            showSnackBar(message = "저장 완료 ⭐")
+            showSnackBar(message = "저장 완료")
         }
+    }
+
+    fun onCopyButtonClicked() {
+        if (url.isBlank()) {
+            showSnackBar(message = "복사할 URL이 없어요.😡")
+            return
+        }
+
+        _eventChannel.trySend(
+            PageEvent.CopyUrlToClipboard(
+                url = url
+            )
+        )
+        showSnackBar(message = "클립보드에 복사 완료")
     }
 
     private fun showSnackBar(message: String) {
