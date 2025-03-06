@@ -5,7 +5,7 @@ interface NavDestination {
         override val route: String = "page"
     }
 
-    data object History : NavDestination {
-        override val route: String = "history"
+    data object SavedUrl : NavDestination {
+        override val route: String = "savedUrl"
     }
 }

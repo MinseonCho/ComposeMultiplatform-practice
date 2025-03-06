@@ -1,7 +1,7 @@
 import data.datasource.UrlLocalDataSource
 import data.repository.UrlRepositoryImpl
 import domain.repository.UrlRepository
-import domain.usecase.GetUrlHistoryUseCase
+import domain.usecase.GetSavedUrlList
 import domain.usecase.SaveUrl
 import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.core.context.startKoin
@@ -12,6 +12,7 @@ import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import ui.page.PageViewModel
+import ui.savedurllist.SavedUrlViewModel
 
 expect fun platformModule(): Module
 
@@ -29,6 +30,7 @@ fun initKoin(config: KoinAppDeclaration? = null) =
 
 val provideViewModelModule = module {
     viewModelOf(::PageViewModel)
+    viewModelOf(::SavedUrlViewModel)
 }
 
 val provideDataSourceModule = module {
@@ -40,6 +42,6 @@ val provideRepositoryModule = module {
 }
 
 val provideUseCaseModule = module {
-    factoryOf(::GetUrlHistoryUseCase)
+    factoryOf(::GetSavedUrlList)
     factoryOf(::SaveUrl)
 }

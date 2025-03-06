@@ -31,9 +31,14 @@ class MainViewModel : BaseViewModel() {
 
     fun onNavItemClicked(navItem: NavigationItem) {
         when (navItem) {
+            NavigationItem.SavedUrl -> {
+                _eventChannel.trySend(MainEvent.NavToSavedUrl)
+            }
+
             NavigationItem.Page -> {
                 _eventChannel.trySend(MainEvent.ShowPage)
             }
+
             NavigationItem.Settings -> {
                 _eventChannel.trySend(MainEvent.ShowAdbPathDialog)
             }

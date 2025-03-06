@@ -50,6 +50,7 @@ import org.koin.core.context.stopKoin
 import ui.NavigationItem
 import ui.page.InputField
 import ui.page.PageScreen
+import ui.savedurllist.SavedUrlScreen
 import ui.style.ColorConstant
 import ui.style.ColorConstant._E6A358
 import ui.utils.CustomDialog
@@ -76,6 +77,14 @@ fun main() = application {
         LaunchedEffect(Unit) {
             viewModel.eventFlow.collect { event ->
                 when (event) {
+                    MainEvent.NavToSavedUrl -> {
+                        if (navController.currentDestination?.route != NavDestination.SavedUrl.route) {
+                            navController.navigate(
+                                route = NavDestination.SavedUrl.route
+                            )
+                        }
+                    }
+
                     MainEvent.ShowPage -> {
                         if (navController.currentDestination?.route != NavDestination.Page.route) {
                             navController.navigate(
@@ -102,7 +111,9 @@ fun main() = application {
                 NavigationRail(
                     containerColor = Color(0xFFF5F5F7),
                     contentColor = Color(0xFFF5F5F7),
-                    modifier = Modifier.width(50.dp)
+                    modifier = Modifier
+                        .width(50.dp)
+                        .padding(bottom = 10.dp)
                 ) {
                     Spacer(Modifier.weight(1f))
                     NavigationItem.entries.forEachIndexed { index, navItem ->
@@ -112,7 +123,7 @@ fun main() = application {
                                     imageVector = navItem.iconRes,
                                     contentDescription = navItem.description,
                                     tint = Color(0xFF374957),
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(22.dp)
                                 )
                             },
                             label = null,
@@ -153,7 +164,14 @@ fun main() = application {
                             )
                         }
 
-                        composable(route = NavDestination.History.route) {
+                        composable(route = NavDestination.SavedUrl.route) {
+                            SavedUrlScreen(
+                                navToUrlPage = {
+                                    navController.navigate(
+                                        route = NavDestination.Page.route
+                                    )
+                                }
+                            )
                         }
                     }
                 }
