@@ -2,7 +2,6 @@ package ui.page
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,15 +22,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -113,55 +106,13 @@ fun PageScreen(
                 .padding(top = 15.dp, end = 15.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 10.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    imageVector = if (uiState.isUrlSaved) {
-                        Icons.Rounded.Star
-                    } else {
-                        Icons.Rounded.StarOutline
-                    },
-                    contentDescription = "save url",
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            pageViewModel.onSaveButtonClicked()
-                        },
-                    tint = if (uiState.isUrlSaved) {
-                        ColorConstant._E6A358
-                    } else {
-                        ColorConstant._B4B4B4
-                    }
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Icon(
-                    imageVector = Icons.Default.ContentCopy,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(15.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            pageViewModel.onCopyButtonClicked()
-                        },
-                    tint = ColorConstant._B4B4B4
-                )
-            }
-
             UrlField(
                 url = uiState.url,
+                isUrlSaved = uiState.isUrlSaved,
                 onUrlChanged = pageViewModel::onUrlChanged,
-                onSendButtonClicked = pageViewModel::onSendButtonClicked
+                onSendButtonClicked = pageViewModel::onSendButtonClicked,
+                onSaveButtonClicked = pageViewModel::onSaveButtonClicked,
+                onCopyButtonClicked = pageViewModel::onCopyButtonClicked,
             )
 
             Spacer(modifier = Modifier.height(5.dp))
