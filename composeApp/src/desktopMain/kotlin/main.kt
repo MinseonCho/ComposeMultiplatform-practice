@@ -62,7 +62,7 @@ fun main() = application {
             stopKoin() // 앱 종료 시 Koin 정리
             exitApplication()
         },
-        title = "KotlinProject")
+        title = "ChoLink Tester🐧")
     {
         val viewModel = remember {
             MainViewModel()
