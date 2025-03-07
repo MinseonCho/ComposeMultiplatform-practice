@@ -30,6 +30,10 @@ class PageViewModel(
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
 
+    fun init(urlId: Int) {
+
+    }
+
     fun onUrlChanged(url: String) {
         this.url = url
         _uiState.update {

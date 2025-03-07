@@ -64,11 +64,18 @@ fun PageScreen(
     modifier: Modifier = Modifier,
     sendLogTexts: ImmutableList<String>,
     pageViewModel: PageViewModel = koinViewModel<PageViewModel>(),
+    urlId: Int? = null,
 ) {
     val uiState by pageViewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
+
+    LaunchedEffect(Unit) {
+        urlId?.let {
+            pageViewModel.init(urlId = it)
+        }
+    }
 
     LaunchedEffect(Unit) {
         pageViewModel.eventFlow.collect { event ->

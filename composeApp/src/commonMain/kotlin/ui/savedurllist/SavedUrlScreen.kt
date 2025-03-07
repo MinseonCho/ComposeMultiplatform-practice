@@ -44,7 +44,7 @@ import ui.style.ColorConstant
 @Composable
 fun SavedUrlScreen(
     viewModel: SavedUrlViewModel = koinViewModel<SavedUrlViewModel>(),
-    navToUrlPage: (UrlItem) -> Unit,
+    navToUrlPage: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -53,7 +53,7 @@ fun SavedUrlScreen(
         viewModel.eventFlow.collect { event ->
             when (event) {
                 is SavedUrlEvent.NavToUrlPage -> {
-                    navToUrlPage(event.urlItem)
+                    navToUrlPage(event.id)
                 }
             }
         }

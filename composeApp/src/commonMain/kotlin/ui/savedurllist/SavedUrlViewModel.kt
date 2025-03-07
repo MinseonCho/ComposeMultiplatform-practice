@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 class SavedUrlViewModel(
     private val getSavedUrlList: GetSavedUrlList,
-): ViewModel() {
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SavedUrlUiState())
     val uiState: StateFlow<SavedUrlUiState> = _uiState.asStateFlow()
@@ -47,7 +47,7 @@ class SavedUrlViewModel(
     fun onUrlClicked(urlItem: UrlItem) {
         _eventChannel.trySend(
             SavedUrlEvent.NavToUrlPage(
-                urlItem = urlItem
+                id = urlItem.id
             )
         )
     }

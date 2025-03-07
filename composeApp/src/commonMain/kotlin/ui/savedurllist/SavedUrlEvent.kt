@@ -3,6 +3,6 @@ package ui.savedurllist
 sealed interface SavedUrlEvent {
 
     data class NavToUrlPage(
-        val urlItem: UrlItem,
+        val id: Int,
     ) : SavedUrlEvent
 }

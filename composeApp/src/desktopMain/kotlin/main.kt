@@ -37,9 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -143,7 +145,17 @@ fun main() = application {
                         navController = navController,
                         startDestination = NavDestination.Page.route
                     ) {
-                        composable(route = NavDestination.Page.route) {
+                        // TODO(mscho): 3/7/25 navigation-compose 버전 올려서 인수 넘기는 방식 변경하기
+                        composable(
+                            route = NavDestination.Page.route,
+                            arguments = listOf(
+                                navArgument("id") {
+                                    type = NavType.StringType // IntType 엔 null 허용이 불가
+                                    nullable = true
+                                    defaultValue = null
+                                }
+                            )
+                        ) { backStackEntry ->
                             PageScreen(
                                 onSendDeeplinkClicked = { url ->
                                     coroutineScope.launch {
@@ -160,15 +172,16 @@ fun main() = application {
                                         )
                                     }
                                 },
-                                sendLogTexts = sendLogTexts.toImmutableList()
+                                sendLogTexts = sendLogTexts.toImmutableList(),
+                                urlId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
                             )
                         }
 
                         composable(route = NavDestination.SavedUrl.route) {
                             SavedUrlScreen(
-                                navToUrlPage = {
+                                navToUrlPage = { id ->
                                     navController.navigate(
-                                        route = NavDestination.Page.route
+                                        route = NavDestination.Page.createRoute(id = id),
                                     )
                                 }
                             )
