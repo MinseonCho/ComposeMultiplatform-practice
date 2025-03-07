@@ -8,6 +8,8 @@ class UrlLocalDataSource(
 ) {
     suspend fun getAllUrls(): List<UrlEntity> = urlDao.getAllUrls()
 
+    suspend fun getUrl(id: Int): UrlEntity? = urlDao.getUrl(id = id)
+
     suspend fun insertUrl(
         url: String,
         memo: String?,

@@ -18,6 +18,17 @@ class UrlRepositoryImpl(
         }
     }
 
+    override suspend fun getUrl(id: Int): UrlInfo? {
+        return localDataSource.getUrl(id = id)?.let {
+            UrlInfo(
+                id = it.id,
+                url = it.url,
+                memo = it.memo.orEmpty(),
+                timestamp = it.timestamp
+            )
+        }
+    }
+
     override suspend fun insertUrl(
         url: String,
         memo: String?,

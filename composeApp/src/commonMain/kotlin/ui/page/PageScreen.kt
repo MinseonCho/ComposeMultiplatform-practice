@@ -72,9 +72,7 @@ fun PageScreen(
     val clipboardManager = LocalClipboardManager.current
 
     LaunchedEffect(Unit) {
-        urlId?.let {
-            pageViewModel.init(urlId = it)
-        }
+        pageViewModel.init(urlId = urlId)
     }
 
     LaunchedEffect(Unit) {

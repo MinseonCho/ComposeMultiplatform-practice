@@ -2,6 +2,7 @@ package ui.page
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import domain.usecase.GetSavedUrl
 import domain.usecase.SaveUrl
 import io.ktor.http.URLBuilder
 import io.ktor.http.decodeURLPart
@@ -19,6 +20,7 @@ import model.QueryItem
 
 class PageViewModel(
     private val saveUrl: SaveUrl,
+    private val getSavedUrl: GetSavedUrl,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PageUiState())
@@ -30,11 +32,37 @@ class PageViewModel(
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
 
-    fun init(urlId: Int) {
+    fun init(urlId: Int?) {
+        if (urlId == null) {
+            return
+        }
 
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val response = getSavedUrl(id = urlId)) {
+                is GetSavedUrl.Response.Success -> {
+                    val savedUrl = response.urlInfo.url
+
+                    _uiState.update {
+                        it.copy(
+                            savedUrl = savedUrl
+                        )
+                    }
+                    handleUrlUpdate(url = savedUrl)
+                }
+
+                GetSavedUrl.Response.NotExist,
+                is GetSavedUrl.Response.Failure -> {
+                    showErrorSnackBar()
+                }
+            }
+        }
     }
 
     fun onUrlChanged(url: String) {
+        handleUrlUpdate(url = url)
+    }
+
+    private fun handleUrlUpdate(url : String) {
         this.url = url
         _uiState.update {
             it.copy(url = this.url)
@@ -216,6 +244,12 @@ class PageViewModel(
             )
         )
         showSnackBar(message = "클립보드에 복사 완료")
+    }
+
+    private fun showErrorSnackBar() {
+        showSnackBar(
+            message = "에러가 발생했습니다."
+        )
     }
 
     private fun showSnackBar(message: String) {

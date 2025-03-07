@@ -1,6 +1,7 @@
 import data.datasource.UrlLocalDataSource
 import data.repository.UrlRepositoryImpl
 import domain.repository.UrlRepository
+import domain.usecase.GetSavedUrl
 import domain.usecase.GetSavedUrlList
 import domain.usecase.SaveUrl
 import org.koin.compose.viewmodel.dsl.viewModelOf
@@ -43,5 +44,6 @@ val provideRepositoryModule = module {
 
 val provideUseCaseModule = module {
     factoryOf(::GetSavedUrlList)
+    factoryOf(::GetSavedUrl)
     factoryOf(::SaveUrl)
 }
