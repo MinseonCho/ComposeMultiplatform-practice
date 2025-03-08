@@ -41,7 +41,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.composeVM)
             implementation(libs.sqlite.bundled)
-            implementation(libs.androidx.material.icons.extended)
+            implementation(compose.materialIconsExtended)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -86,7 +86,6 @@ android {
 
 dependencies {
     add("kspCommonMainMetadata", libs.androidx.room.compiler)
-//    add("kspAndroid", libs.androidx.room.compiler)
 }
 
 room {
@@ -105,8 +104,15 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.example.project"
+            packageName = "ChoLinkTester"
             packageVersion = "1.0.0"
+
+            macOS {
+                signing {
+                    sign.set(false)
+                }
+                bundleID = "ChoLinkTester"
+            }
         }
     }
 }
