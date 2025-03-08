@@ -55,6 +55,7 @@ class MainViewModel: BaseViewModel(), KoinComponent {
     fun onAdbPathDialogConfirmButtonClicked(path: String) {
         _adbAbsolutePath = path
         saveAdbPath(path)
+        initAdbDevices()
     }
 
     private fun initAdbPath() {
