@@ -1,5 +1,6 @@
 import data.datasource.UrlLocalDataSource
 import data.repository.UrlRepositoryImpl
+import di.preferencesModule
 import domain.repository.UrlRepository
 import domain.usecase.GetSavedUrl
 import domain.usecase.GetSavedUrlList
@@ -25,6 +26,7 @@ fun initKoin(config: KoinAppDeclaration? = null) =
                     + provideDataSourceModule
                     + provideRepositoryModule
                     + provideUseCaseModule
+                    + preferencesModule
                     + platformModule()
         )
     }

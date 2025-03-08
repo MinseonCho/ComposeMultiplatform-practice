@@ -1,14 +1,21 @@
 import androidx.compose.runtime.mutableStateMapOf
 import base.BaseViewModel
+import domain.usecase.GetSavedAdbPath
+import domain.usecase.SaveAdbPath
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import model.AdbDevice
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import platform.AdbPathFinder
 import ui.NavigationItem
 
-class MainViewModel : BaseViewModel() {
+class MainViewModel: BaseViewModel(), KoinComponent {
+
+    private val getSavedAdbPath: GetSavedAdbPath by inject()
+    private val saveAdbPath: SaveAdbPath by inject()
 
     private val _eventChannel = Channel<MainEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<MainEvent> = _eventChannel.receiveAsFlow()
@@ -45,12 +52,16 @@ class MainViewModel : BaseViewModel() {
         }
     }
 
-    fun onAdbPathDialogConfirmButtonClicked(adbAbsolutePath: String) {
-        _adbAbsolutePath = adbAbsolutePath
+    fun onAdbPathDialogConfirmButtonClicked(path: String) {
+        _adbAbsolutePath = path
+        saveAdbPath(path)
     }
 
     private fun initAdbPath() {
-        val adbPath = AdbPathFinder.findAdbPath()
+        val adbPath = getSavedAdbPath().ifEmpty {
+            AdbPathFinder.findAdbPath()
+        }
+
         if (adbPath != null) {
             _adbAbsolutePath = adbPath
             println("Found ADB path: $_adbAbsolutePath")
