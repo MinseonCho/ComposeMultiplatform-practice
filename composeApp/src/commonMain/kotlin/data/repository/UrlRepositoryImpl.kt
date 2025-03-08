@@ -38,4 +38,12 @@ class UrlRepositoryImpl(
             memo = memo,
         )
     }
+
+    override suspend fun deleteUrl(id: Int) {
+        localDataSource.deleteUrl(id = id)
+    }
+
+    override suspend fun deleteAllUrl() {
+        localDataSource.deleteAllUrl()
+    }
 }

@@ -5,4 +5,8 @@ import kotlinx.collections.immutable.persistentListOf
 
 data class SavedUrlUiState(
     val urls: ImmutableList<UrlItem> = persistentListOf(),
-)
+) {
+
+    val isDeleteAllButtonEnabled: Boolean
+        get() = urls.isNotEmpty()
+}

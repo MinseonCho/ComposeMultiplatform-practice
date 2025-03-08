@@ -15,4 +15,10 @@ interface UrlDao {
 
     @Insert
     suspend fun insertUrl(url: UrlEntity)
+
+    @Query("DELETE FROM UrlEntity WHERE id = :id")
+    suspend fun deleteUrl(id: Int)
+
+    @Query("DELETE FROM UrlEntity")
+    suspend fun deleteAllUrl()
 }

@@ -1,5 +1,6 @@
 package ui.savedurllist
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -36,11 +39,12 @@ import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import ui.style.ColorConstant
 
-@OptIn(KoinExperimentalAPI::class)
+@OptIn(KoinExperimentalAPI::class, ExperimentalFoundationApi::class)
 @Composable
 fun SavedUrlScreen(
     viewModel: SavedUrlViewModel = koinViewModel<SavedUrlViewModel>(),
@@ -48,12 +52,22 @@ fun SavedUrlScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collect { event ->
             when (event) {
                 is SavedUrlEvent.NavToUrlPage -> {
                     navToUrlPage(event.id)
+                }
+
+                is SavedUrlEvent.ShowSnackBar -> {
+                    coroutineScope.launch {
+                        snackBarHostState.showSnackbar(
+                            message = event.message
+                        )
+                    }
                 }
             }
         }
@@ -71,26 +85,52 @@ fun SavedUrlScreen(
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         item {
-            Text(
-                text = "저장된 URL 목록(최신순)",
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                color = ColorConstant._E6A358,
-                modifier = Modifier
-                    .background(
-                        color = ColorConstant._FEF7E1,
-                        shape = RoundedCornerShape(4.dp)
-                    )
-                    .padding(horizontal = 6.dp, vertical = 3.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "저장된 URL 목록(최신순)",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = ColorConstant._E6A358,
+                    modifier = Modifier
+                        .background(
+                            color = ColorConstant._FEF7E1,
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 6.dp, vertical = 3.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        viewModel.onDeleteAllButtonClicked()
+                    },
+                    text = "전체 삭제",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp,
+                    color = if (uiState.isDeleteAllButtonEnabled) {
+                        ColorConstant._E6A358
+                    } else {
+                        ColorConstant._B4B4B4
+                    },
+                )
+            }
             Spacer(modifier = Modifier.height(10.dp))
         }
 
-        items(uiState.urls) { item ->
+        items(
+            items = uiState.urls,
+            key = { item -> item.id }
+        ) { item ->
             UrlListItem(
                 urlItem = item,
                 onClicked = viewModel::onUrlClicked,
-                onDeleteButtonClicked = viewModel::onDeleteButtonClicked
+                onDeleteButtonClicked = viewModel::onDeleteButtonClicked,
+                modifier = Modifier.animateItemPlacement()
             )
         }
     }

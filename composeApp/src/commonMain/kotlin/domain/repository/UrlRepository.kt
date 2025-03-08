@@ -11,4 +11,8 @@ interface UrlRepository {
         url: String,
         memo: String?,
     )
+
+    suspend fun deleteUrl(id: Int)
+
+    suspend fun deleteAllUrl()
 }
