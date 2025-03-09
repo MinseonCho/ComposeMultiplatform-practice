@@ -37,6 +37,8 @@ class SavedUrlViewModel(
 
     private fun initSavedUrlList() {
         viewModelScope.launch(Dispatchers.IO) {
+            urlMap.clear()
+            pendingDeleteUrls.clear()
             when (val response = getSavedUrlList()) {
                 is GetSavedUrlList.Response.Success -> {
                     urlMap.putAll(
