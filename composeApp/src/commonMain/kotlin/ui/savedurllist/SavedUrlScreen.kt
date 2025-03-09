@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -119,18 +119,22 @@ fun SavedUrlScreen(
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
+                .background(ColorConstant._F5F5F7)
                 .padding(top = 15.dp, end = 15.dp)
                 .background(
                     color = Color.White,
                     shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
                 ),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            item {
+            stickyHeader {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .background(color = Color.White)
                 ) {
                     Text(
                         text = "저장된 URL 목록(최신순)",
@@ -162,7 +166,6 @@ fun SavedUrlScreen(
                         },
                     )
                 }
-                Spacer(modifier = Modifier.height(10.dp))
             }
 
             items(
@@ -229,7 +232,7 @@ private fun UrlListItem(
                 )
             }
         }
-
+        Spacer(modifier = Modifier.width(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = urlItem.savedTime,
@@ -244,6 +247,7 @@ private fun UrlListItem(
                     .clickable {
                         onDeleteButtonClicked(urlItem)
                     }
+                    .padding(3.dp)
                     .size(18.dp)
                     .alignByBaseline(),
                 tint = ColorConstant._B4B4B4

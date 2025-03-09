@@ -134,7 +134,7 @@ fun PageScreen(
 
             LogBody(
                 logTexts = sendLogTexts,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -185,7 +185,7 @@ fun LogBody(
 
     Column(
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .background(color = Color.White)
             .padding(10.dp)
     ) {
@@ -205,8 +205,7 @@ fun LogBody(
 
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
+                .fillMaxSize()
                 .background(color = ColorConstant._F5F5F7)
                 .padding(10.dp)
                 .verticalScroll(rememberScrollState()),
