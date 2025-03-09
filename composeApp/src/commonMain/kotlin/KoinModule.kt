@@ -3,7 +3,7 @@ import data.repository.UrlRepositoryImpl
 import di.preferencesModule
 import domain.repository.UrlRepository
 import domain.usecase.DeleteSavedAllUrl
-import domain.usecase.DeleteSavedUrl
+import domain.usecase.DeleteSavedUrls
 import domain.usecase.GetSavedUrl
 import domain.usecase.GetSavedUrlList
 import domain.usecase.SaveUrl
@@ -50,6 +50,6 @@ val provideUseCaseModule = module {
     factoryOf(::GetSavedUrlList)
     factoryOf(::GetSavedUrl)
     factoryOf(::SaveUrl)
-    factoryOf(::DeleteSavedUrl)
+    factoryOf(::DeleteSavedUrls)
     factoryOf(::DeleteSavedAllUrl)
 }

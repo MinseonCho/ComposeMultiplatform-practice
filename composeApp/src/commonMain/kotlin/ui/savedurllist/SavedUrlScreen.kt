@@ -21,9 +21,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,9 +41,12 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -54,6 +62,24 @@ fun SavedUrlScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> {
+                    viewModel.onStop()
+                }
+
+                else -> Unit
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collect { event ->
@@ -64,74 +90,92 @@ fun SavedUrlScreen(
 
                 is SavedUrlEvent.ShowSnackBar -> {
                     coroutineScope.launch {
-                        snackBarHostState.showSnackbar(
-                            message = event.message
+                        snackBarHostState.currentSnackbarData?.dismiss()
+                        val snackBarResult = snackBarHostState.showSnackbar(
+                            message = event.message,
+                            actionLabel = event.actionLabel,
+                            duration = SnackbarDuration.Short
                         )
+
+                        when (snackBarResult) {
+                            SnackbarResult.Dismissed -> {
+                                event.onDismissed?.invoke()
+                            }
+
+                            SnackbarResult.ActionPerformed -> {
+                                event.onActionPerformed?.invoke()
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(top = 15.dp, end = 15.dp)
-            .background(
-                color = Color.White,
-                shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
-            ),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackBarHostState) }
     ) {
-        item {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "저장된 URL 목록(최신순)",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    color = ColorConstant._E6A358,
-                    modifier = Modifier
-                        .background(
-                            color = ColorConstant._FEF7E1,
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 6.dp, vertical = 3.dp)
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        viewModel.onDeleteAllButtonClicked()
-                    },
-                    text = "전체 삭제",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    color = if (uiState.isDeleteAllButtonEnabled) {
-                        ColorConstant._E6A358
-                    } else {
-                        ColorConstant._B4B4B4
-                    },
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(top = 15.dp, end = 15.dp)
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
+                ),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "저장된 URL 목록(최신순)",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        color = ColorConstant._E6A358,
+                        modifier = Modifier
+                            .background(
+                                color = ColorConstant._FEF7E1,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            viewModel.onDeleteAllButtonClicked()
+                        },
+                        text = "전체 삭제",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = if (uiState.isDeleteAllButtonEnabled) {
+                            ColorConstant._E6A358
+                        } else {
+                            ColorConstant._B4B4B4
+                        },
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            items(
+                items = uiState.urls,
+                key = { item -> item.id }
+            ) { item ->
+                UrlListItem(
+                    urlItem = item,
+                    onClicked = viewModel::onUrlClicked,
+                    onDeleteButtonClicked = viewModel::onDeleteButtonClicked,
+                    modifier = Modifier.animateItemPlacement()
                 )
             }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-
-        items(
-            items = uiState.urls,
-            key = { item -> item.id }
-        ) { item ->
-            UrlListItem(
-                urlItem = item,
-                onClicked = viewModel::onUrlClicked,
-                onDeleteButtonClicked = viewModel::onDeleteButtonClicked,
-                modifier = Modifier.animateItemPlacement()
-            )
         }
     }
 }

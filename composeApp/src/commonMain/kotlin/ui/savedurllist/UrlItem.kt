@@ -6,19 +6,23 @@ import java.util.Date
 import java.util.Locale
 
 data class UrlItem(
+    val orderIndex: Int,
     val id: Int,
     val url: String,
     val memo: String,
     val savedTime: String,
 )
 
-fun UrlInfo.toUrlItem(): UrlItem {
-    return UrlItem(
-        id = id.toInt(),
-        url = url,
-        memo = memo,
-        savedTime = timestamp.formatCurrentTimeMillis()
-    )
+fun List<UrlInfo>.toUrlItemList(): List<UrlItem> {
+    return this.mapIndexed { index, urlInfo ->
+        UrlItem(
+            orderIndex = index,
+            id = urlInfo.id.toInt(),
+            url = urlInfo.url,
+            memo = urlInfo.memo,
+            savedTime = urlInfo.timestamp.formatCurrentTimeMillis()
+        )
+    }
 }
 
 private fun Long.formatCurrentTimeMillis(): String {

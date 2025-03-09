@@ -2,13 +2,13 @@ package domain.usecase
 
 import domain.repository.UrlRepository
 
-class DeleteSavedUrl(
+class DeleteSavedUrls(
     private val urlRepository: UrlRepository,
 ) {
 
-    suspend operator fun invoke(id: Int): Response {
+    suspend operator fun invoke(indices: List<Int>): Response {
         return runCatching {
-            urlRepository.deleteUrl(id = id)
+            urlRepository.deleteUrls(indices = indices)
             Response.Success
         }.getOrElse {
             Response.Failure(throwable = it)

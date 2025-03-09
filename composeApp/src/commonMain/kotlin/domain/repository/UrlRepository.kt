@@ -12,7 +12,7 @@ interface UrlRepository {
         memo: String?,
     )
 
-    suspend fun deleteUrl(id: Int)
+    suspend fun deleteUrls(indices: List<Int>)
 
     suspend fun deleteAllUrl()
 }

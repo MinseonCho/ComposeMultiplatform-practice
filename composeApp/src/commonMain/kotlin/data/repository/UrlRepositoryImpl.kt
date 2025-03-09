@@ -39,8 +39,8 @@ class UrlRepositoryImpl(
         )
     }
 
-    override suspend fun deleteUrl(id: Int) {
-        localDataSource.deleteUrl(id = id)
+    override suspend fun deleteUrls(indices: List<Int>) {
+        localDataSource.deleteUrls(indices = indices)
     }
 
     override suspend fun deleteAllUrl() {

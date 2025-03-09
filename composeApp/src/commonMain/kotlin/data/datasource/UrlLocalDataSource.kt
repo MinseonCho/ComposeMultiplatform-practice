@@ -22,8 +22,8 @@ class UrlLocalDataSource(
         )
     }
 
-    suspend fun deleteUrl(id: Int) {
-        urlDao.deleteUrl(id = id)
+    suspend fun deleteUrls(indices: List<Int>) {
+        urlDao.deleteUrls(indices = indices)
     }
 
     suspend fun deleteAllUrl() {
