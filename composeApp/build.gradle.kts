@@ -112,6 +112,7 @@ compose.desktop {
                     sign.set(false)
                 }
                 bundleID = "ChoLinkTester"
+                iconFile.set(project.file("src/commonMain/resources/drawable/ic_launcher.icns"))
             }
         }
     }
