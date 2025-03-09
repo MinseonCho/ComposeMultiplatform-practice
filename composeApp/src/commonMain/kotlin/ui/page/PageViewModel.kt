@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import domain.usecase.GetSavedUrl
 import domain.usecase.SaveUrl
 import io.ktor.http.URLBuilder
-import io.ktor.http.decodeURLPart
+import io.ktor.http.Url
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -141,7 +141,7 @@ class PageViewModel(
         )
         _uiState.update {
             it.copy(
-                url = url.decodeURLPart(), // ui state 에는 decode 된 url 노출
+                url = url,
                 queries = queryMap.values.toImmutableList()
             )
         }
@@ -164,44 +164,28 @@ class PageViewModel(
         val newUrlBuilder = URLBuilder(originUrl)
 
         newUrlBuilder.parameters.clear()
+        newUrlBuilder.encodedParameters.clear()
         newQueries
             .filter { it.isChecked }
             .forEach { query ->
-                newUrlBuilder.parameters.append(query.key, query.value)
+                // encodedParameters.append 하면 내부적으로 자동 인코딩 되지 않음
+                newUrlBuilder.encodedParameters.append(query.key, query.value)
             }
         return newUrlBuilder.build().toString()
     }
 
     private fun parseQueryParameters(url: String): List<QueryItem> {
-        val queryStartIndex = url.indexOf("?")
-
-        if (queryStartIndex == -1 || queryStartIndex == url.lastIndex) {
-            return emptyList()
+        return Url(url).parameters
+            .entries()
+            .flatMapIndexed { index, (key, values) ->
+                values.map { value ->
+                    QueryItem(
+                        id = index,
+                        key = key,
+                        value = value
+                    )
+                }
         }
-
-        val fragmentIndex = url.indexOf("#")
-        val queryString = when (fragmentIndex == -1) {
-            true -> {
-                url.substring(queryStartIndex + 1)
-            }
-
-            false -> {
-                url.substring(queryStartIndex + 1, fragmentIndex)
-            }
-        }
-
-        return queryString.split("&")
-            .mapIndexed { index, param ->
-                val parts = param.split("=")
-                val key = parts.getOrNull(0).orEmpty()
-                val value = parts.getOrNull(1).orEmpty()
-
-                QueryItem(
-                    id = index,
-                    key = key,
-                    value = value
-                )
-            }
     }
 
     fun onSaveButtonClicked() {
