@@ -25,6 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,7 +72,14 @@ fun UrlField(
         BasicTextField(
             modifier = Modifier
                 .padding(10.dp)
-                .weight(1f, fill = true),
+                .weight(1f, fill = true)
+                .onKeyEvent { event ->
+                    if (event.key == Key.Enter) {
+                        onSendButtonClicked()
+                        return@onKeyEvent true
+                    }
+                    false
+                },
             value = url,
             onValueChange = {
                 onUrlChanged(it)

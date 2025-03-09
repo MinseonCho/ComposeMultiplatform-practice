@@ -59,7 +59,9 @@ class PageViewModel(
     }
 
     fun onUrlChanged(url: String) {
-        handleUrlUpdate(url = url)
+        handleUrlUpdate(
+            url = url.replace("\n", "") // 줄바꿈 막음
+        )
     }
 
     private fun handleUrlUpdate(url : String) {
