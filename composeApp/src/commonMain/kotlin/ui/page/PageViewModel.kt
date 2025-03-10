@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import domain.usecase.GetSavedUrl
 import domain.usecase.SaveUrl
 import io.ktor.http.URLBuilder
-import io.ktor.http.Url
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -177,17 +176,35 @@ class PageViewModel(
     }
 
     private fun parseQueryParameters(url: String): List<QueryItem> {
-        return Url(url).parameters
-            .entries()
-            .flatMapIndexed { index, (key, values) ->
-                values.map { value ->
-                    QueryItem(
-                        id = index,
-                        key = key,
-                        value = value
-                    )
-                }
+        val queryStartIndex = url.indexOf("?")
+
+        if (queryStartIndex == -1 || queryStartIndex == url.lastIndex) {
+            return emptyList()
         }
+
+        val fragmentIndex = url.indexOf("#")
+        val queryString = when (fragmentIndex == -1) {
+            true -> {
+                url.substring(queryStartIndex + 1)
+            }
+
+            false -> {
+                url.substring(queryStartIndex + 1, fragmentIndex)
+            }
+        }
+
+        return queryString.split("&")
+            .mapIndexed { index, param ->
+                val parts = param.split("=")
+                val key = parts.getOrNull(0).orEmpty()
+                val value = parts.getOrNull(1).orEmpty()
+
+                QueryItem(
+                    id = index,
+                    key = key,
+                    value = value
+                )
+            }
     }
 
     fun onSaveButtonClicked() {
