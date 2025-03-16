@@ -191,7 +191,7 @@ fun main() = application {
             }
 
             if (showAdbAbsolutePathDialog) {
-                showADBAbsolutePathDialog(
+                ADBAbsolutePathDialog(
                     path = viewModel.adbAbsolutePath,
                     devices = viewModel.devices.toImmutableList(),
                     onDeviceSelected = viewModel::onDeviceSelected,
@@ -238,7 +238,7 @@ suspend fun triggerUrl(
 }
 
 @Composable
-private fun showADBAbsolutePathDialog(
+private fun ADBAbsolutePathDialog(
     path: String,
     devices: ImmutableList<AdbDevice>,
     onDeviceSelected: (AdbDevice) -> Unit,
