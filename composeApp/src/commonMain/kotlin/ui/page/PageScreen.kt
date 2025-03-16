@@ -1,7 +1,9 @@
 package ui.page
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,16 +25,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,10 +49,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -52,6 +64,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
 import model.QueryItem
@@ -72,9 +86,27 @@ fun PageScreen(
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
         pageViewModel.init(urlId = urlId)
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> {
+                    pageViewModel.onStop()
+                }
+
+                else -> Unit
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -87,9 +119,21 @@ fun PageScreen(
                 is PageEvent.ShowSnackBar -> {
                     coroutineScope.launch {
                         snackBarHostState.currentSnackbarData?.dismiss()
-                        snackBarHostState.showSnackbar(
-                            message = event.message
+                        val snackBarResult = snackBarHostState.showSnackbar(
+                            message = event.message,
+                            actionLabel = event.actionLabel,
+                            duration = SnackbarDuration.Short
                         )
+
+                        when (snackBarResult) {
+                            SnackbarResult.Dismissed -> {
+                                event.onDismissed?.invoke()
+                            }
+
+                            SnackbarResult.ActionPerformed -> {
+                                event.onActionPerformed?.invoke()
+                            }
+                        }
                     }
                 }
 
@@ -129,6 +173,7 @@ fun PageScreen(
                 onKeyChanged = pageViewModel::onQueryKeyChanged,
                 onValueChanged = pageViewModel::onQueryValueChanged,
                 onCheckedChanged = pageViewModel::onCheckedChanged,
+                onRemoveButtonClicked = pageViewModel::onRemoveButtonClicked,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -148,9 +193,9 @@ fun QueryContent(
     onKeyChanged: (QueryItem, String) -> Unit,
     onValueChanged: (QueryItem, String) -> Unit,
     onCheckedChanged: (QueryItem, Boolean) -> Unit,
+    onRemoveButtonClicked: (QueryItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
     Column(
         modifier = modifier
             .background(color = Color.White)
@@ -174,7 +219,8 @@ fun QueryContent(
             queries = queries,
             onKeyChanged = onKeyChanged,
             onValueChanged = onValueChanged,
-            onCheckedChanged = onCheckedChanged
+            onCheckedChanged = onCheckedChanged,
+            onRemoveButtonClicked = onRemoveButtonClicked,
         )
     }
 }
@@ -223,12 +269,14 @@ fun LogBody(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueryTable(
     queries: ImmutableList<QueryItem>,
     onKeyChanged: (QueryItem, String) -> Unit,
     onValueChanged: (QueryItem, String) -> Unit,
     onCheckedChanged: (QueryItem, Boolean) -> Unit,
+    onRemoveButtonClicked: (QueryItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -244,12 +292,17 @@ fun QueryTable(
             Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
         }
 
-        items(queries) { query ->
+        items(
+            items = queries,
+            key = { it.id }
+        ) { query ->
             SingleQuery(
                 queryItem = query,
                 onCheckedChanged = onCheckedChanged,
                 onKeyChanged = onKeyChanged,
-                onValueChanged = onValueChanged
+                onValueChanged = onValueChanged,
+                onRemoveButtonClicked = onRemoveButtonClicked,
+                modifier = Modifier.animateItemPlacement()
             )
             Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
         }
@@ -298,17 +351,26 @@ fun QueryTableHeaderRow(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SingleQuery(
     queryItem: QueryItem,
     onKeyChanged: (QueryItem, String) -> Unit,
     onValueChanged: (QueryItem, String) -> Unit,
     onCheckedChanged: (QueryItem, Boolean) -> Unit,
+    onRemoveButtonClicked: (QueryItem) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    var isMouseHovered by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier
             .height(IntrinsicSize.Min)
+            .background(color = Color.White)
+            .pointerMoveFilter(
+                onEnter = { isMouseHovered = true; false },
+                onExit = { isMouseHovered = false; false }
+            )
     ) {
         Checkbox(
             modifier = Modifier.width(50.dp), // checkBox width 는 고정
@@ -338,16 +400,38 @@ fun SingleQuery(
 
         TableVerticalDivider()
 
-        InputField(
-            text = queryItem.value,
-            onValueChanged = {
-                onValueChanged(queryItem, it)
-            },
+        Row(
             modifier = Modifier
-                .padding(horizontal = 5.dp)
                 .weight(weight = 0.7f, fill = true)
-                .align(Alignment.CenterVertically)
-        )
+                .align(Alignment.CenterVertically),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            InputField(
+                text = queryItem.value,
+                onValueChanged = {
+                    onValueChanged(queryItem, it)
+                },
+                modifier = Modifier
+                    .padding(start = 5.dp)
+                    .weight(1f)
+            )
+            if (isMouseHovered) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    tint = ColorConstant._E8E8E8,
+                    modifier = Modifier
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            onRemoveButtonClicked(queryItem)
+                        }
+                        .padding(5.dp)
+                        .size(18.dp)
+                )
+            }
+        }
     }
 }
 

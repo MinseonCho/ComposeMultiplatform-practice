@@ -24,12 +24,11 @@ class PageViewModel(
 
     private val _uiState = MutableStateFlow(PageUiState())
     val uiState: StateFlow<PageUiState> = _uiState.asStateFlow()
-
-    private var url: String = ""
-    private val queryMap = sortedMapOf<Int, QueryItem>()
-
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
+
+    private val queryMap = sortedMapOf<Int, QueryItem>()
+    private val pendingRemoveQueries = mutableMapOf<Int, QueryItem>()
 
     fun init(urlId: Int?) {
         if (urlId == null) {
@@ -63,17 +62,32 @@ class PageViewModel(
         )
     }
 
-    private fun handleUrlUpdate(url : String) {
-        this.url = url
+    private fun updateUrlAndQueries() {
         _uiState.update {
-            it.copy(url = this.url)
+            it.copy(
+                url = generateUrlStringWith(
+                    originUrl = _uiState.value.url,
+                    newQueries = queryMap.values.toList()
+                ),
+                queries = queryMap.values.toImmutableList()
+            )
         }
-        parseUrlQueriesWith(url = this.url)
+    }
+
+    private fun handleUrlUpdate(url : String) {
+        _uiState.update {
+            it.copy(url = url)
+        }
+        parseUrlQueriesWith(url = url)
     }
 
     fun onSendButtonClicked() {
         viewModelScope.launch {
-            _eventChannel.send(PageEvent.TriggerUrl(url))
+            _eventChannel.send(
+                PageEvent.TriggerUrl(
+                    url = _uiState.value.url
+                )
+            )
         }
     }
 
@@ -96,8 +110,31 @@ class PageViewModel(
     ) {
         val item = queryMap[queryItem.id] ?: return
 
-        putNewQueryData(
+        updateQueryItemWith(
             newQueryItem = item.copy(isChecked = isChecked)
+        )
+    }
+
+    fun onRemoveButtonClicked(queryItem: QueryItem) {
+        pendingRemoveQueries[queryItem.id] = queryItem
+        queryMap.remove(queryItem.id)
+        updateUrlAndQueries()
+
+        _eventChannel.trySend(
+            PageEvent.ShowSnackBar(
+                message = "삭제 완료",
+                actionLabel = "실행 취소",
+                onDismissed = {
+                    pendingRemoveQueries.remove(queryItem.id)
+                    updateUrlAndQueries()
+                },
+                onActionPerformed = {
+                    pendingRemoveQueries.remove(queryItem.id)?.let {
+                        queryMap[it.id] = it
+                    }
+                    updateUrlAndQueries()
+                }
+            )
         )
     }
 
@@ -107,7 +144,7 @@ class PageViewModel(
     ) {
         val item = queryMap[queryItem.id] ?: return
 
-        putNewQueryData(
+        updateQueryItemWith(
             newQueryItem = item.copy(
                 value = newValue,
                 isChecked = true
@@ -121,7 +158,7 @@ class PageViewModel(
     ) {
         val item = queryMap[queryItem.id] ?: return
 
-        putNewQueryData(
+        updateQueryItemWith(
             newQueryItem = item.copy(
                 key = newKey,
                 isChecked = true
@@ -129,23 +166,13 @@ class PageViewModel(
         )
     }
 
-    private fun putNewQueryData(newQueryItem: QueryItem) {
+    private fun updateQueryItemWith(newQueryItem: QueryItem) {
         queryMap[newQueryItem.id] = newQueryItem
 
         if (newQueryItem.id == queryMap.lastKey()) {
             putNewEmptyQuery()
         }
-
-        url = generateUrlStringWith(
-            originUrl = url,
-            newQueries = queryMap.values.toList()
-        )
-        _uiState.update {
-            it.copy(
-                url = url,
-                queries = queryMap.values.toImmutableList()
-            )
-        }
+        updateUrlAndQueries()
     }
 
     private fun putNewEmptyQuery() {
@@ -155,6 +182,7 @@ class PageViewModel(
             queryMap.lastKey() + 1
         }
         val newItem = QueryItem.generateEmptyQueryItem( id = queryId)
+
         queryMap[newItem.id] = newItem
     }
 
@@ -208,7 +236,7 @@ class PageViewModel(
     }
 
     fun onSaveButtonClicked() {
-        if (url.isBlank()) {
+        if (_uiState.value.url.isBlank()) {
             showSnackBar(message = "저장할 URL이 없어요.😡")
             return
         }
@@ -222,6 +250,7 @@ class PageViewModel(
 
     private fun saveUrl() {
         viewModelScope.launch(Dispatchers.IO) {
+            val url = _uiState.value.url
             saveUrl.invoke(
                 url = url,
                 memo = null
@@ -236,14 +265,14 @@ class PageViewModel(
     }
 
     fun onCopyButtonClicked() {
-        if (url.isBlank()) {
+        if (_uiState.value.url.isBlank()) {
             showSnackBar(message = "복사할 URL이 없어요.😡")
             return
         }
 
         _eventChannel.trySend(
             PageEvent.CopyUrlToClipboard(
-                url = url
+                url = _uiState.value.url
             )
         )
         showSnackBar(message = "클립보드에 복사 완료")
@@ -261,5 +290,9 @@ class PageViewModel(
                 message = message
             )
         )
+    }
+
+    fun onStop() {
+        pendingRemoveQueries.clear()
     }
 }
