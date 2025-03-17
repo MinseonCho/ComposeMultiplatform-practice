@@ -57,10 +57,8 @@ import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -456,20 +454,11 @@ fun InputField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
-    var textFieldValue by remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = text,
-                selection = TextRange(text.length) // 커서 위치 맨 끝으로 설정
-            )
-        )
-    }
 
     BasicTextField(
-        value = textFieldValue,
+        value = text,
         onValueChange = {
-            textFieldValue = it
-            onValueChanged(it.text)
+            onValueChanged(it)
         },
         modifier = modifier
             .background(
@@ -486,7 +475,7 @@ fun InputField(
         ),
     ) { innerTextField ->
         TextFieldDefaults.DecorationBox(
-            value = textFieldValue.text,
+            value = text,
             innerTextField = innerTextField,
             enabled = isEnabled,
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
