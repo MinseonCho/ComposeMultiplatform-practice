@@ -1,6 +1,7 @@
 package ui.page
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
@@ -228,6 +230,7 @@ fun LogContent(
     logTexts: ImmutableList<String>,
     modifier: Modifier = Modifier,
 ) {
+    val listState = rememberScrollState()
 
     Column(
         modifier = modifier
@@ -249,19 +252,28 @@ fun LogContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = ColorConstant._F5F5F7)
-                .padding(10.dp)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Text(
-                text = logTexts.joinToString("\n"),
-                color = ColorConstant._848484,
-                fontWeight = FontWeight.Normal,
-                fontSize = 11.sp,
-                lineHeight = 14.sp
+        Row(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(color = ColorConstant._F5F5F7)
+                    .padding(10.dp)
+                    .verticalScroll(listState),
+            ) {
+                Text(
+                    text = logTexts.joinToString("\n"),
+                    color = ColorConstant._848484,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                )
+            }
+            VerticalScrollbar(
+                adapter = rememberScrollbarAdapter(listState),
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(4.dp)
             )
         }
     }
@@ -279,40 +291,48 @@ fun QueryTable(
 ) {
     val listState = rememberLazyListState()
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .border(
-                width = 1.dp,
-                color = ColorConstant._E8E8E8
-            ),
-        state = listState
-    ) {
-        item {
-            QueryTableHeaderRow()
-            Divider(
-                color = ColorConstant._E8E8E8,
-                modifier = Modifier.height(1.dp)
-            )
-        }
+    Row(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .border(
+                    width = 1.dp,
+                    color = ColorConstant._E8E8E8
+                ),
+            state = listState
+        ) {
+            item {
+                QueryTableHeaderRow()
+                Divider(
+                    color = ColorConstant._E8E8E8,
+                    modifier = Modifier.height(1.dp)
+                )
+            }
 
-        items(
-            items = queries,
-            key = { it.id }
-        ) { query ->
-            SingleQuery(
-                queryItem = query,
-                onCheckedChanged = onCheckedChanged,
-                onKeyChanged = onKeyChanged,
-                onValueChanged = onValueChanged,
-                onRemoveButtonClicked = onRemoveButtonClicked,
-                modifier = Modifier.animateItemPlacement()
-            )
-            Divider(
-                color = ColorConstant._E8E8E8,
-                modifier = Modifier.height(1.dp)
-            )
+            items(
+                items = queries,
+                key = { it.id }
+            ) { query ->
+                SingleQuery(
+                    queryItem = query,
+                    onCheckedChanged = onCheckedChanged,
+                    onKeyChanged = onKeyChanged,
+                    onValueChanged = onValueChanged,
+                    onRemoveButtonClicked = onRemoveButtonClicked,
+                    modifier = Modifier.animateItemPlacement()
+                )
+                Divider(
+                    color = ColorConstant._E8E8E8,
+                    modifier = Modifier.height(1.dp)
+                )
+            }
         }
+        VerticalScrollbar(
+            adapter = rememberScrollbarAdapter(listState),
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(4.dp)
+        )
     }
 }
 
