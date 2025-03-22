@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -104,7 +105,14 @@ fun main() = application {
                     MainEvent.ShowPage -> {
                         if (navController.currentDestination?.route != NavDestination.Page.route) {
                             navController.navigate(
-                                route = NavDestination.Page.route
+                                route = NavDestination.Page.route,
+                                navOptions = NavOptions.Builder()
+                                    .setLaunchSingleTop(true)
+                                    .setPopUpTo(
+                                        route = NavDestination.Page.route,
+                                        inclusive = false
+                                    )
+                                    .build(),
                             )
                         }
                     }
@@ -213,7 +221,7 @@ fun main() = application {
                                     }
                                 },
                                 sendLogTexts = sendLogTexts.toImmutableList(),
-                                urlId = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                                urlId = backStackEntry.arguments?.getString("id")?.toIntOrNull(),
                             )
                         }
 
