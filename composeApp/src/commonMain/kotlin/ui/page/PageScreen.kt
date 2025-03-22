@@ -172,14 +172,14 @@ fun PageScreen(
                 onValueChanged = pageViewModel::onQueryValueChanged,
                 onCheckedChanged = pageViewModel::onCheckedChanged,
                 onRemoveButtonClicked = pageViewModel::onRemoveButtonClicked,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().weight(1f)
             )
 
             Spacer(modifier = Modifier.height(5.dp))
 
-            LogBody(
+            LogContent(
                 logTexts = sendLogTexts,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.height(200.dp)
             )
         }
     }
@@ -224,7 +224,7 @@ fun QueryContent(
 }
 
 @Composable
-fun LogBody(
+fun LogContent(
     logTexts: ImmutableList<String>,
     modifier: Modifier = Modifier,
 ) {
@@ -278,16 +278,22 @@ fun QueryTable(
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
+
     LazyColumn(
         modifier = modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .border(width = 1.dp, color = ColorConstant._E8E8E8),
+            .fillMaxSize()
+            .border(
+                width = 1.dp,
+                color = ColorConstant._E8E8E8
+            ),
         state = listState
     ) {
         item {
             QueryTableHeaderRow()
-            Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
+            Divider(
+                color = ColorConstant._E8E8E8,
+                modifier = Modifier.height(1.dp)
+            )
         }
 
         items(
@@ -302,7 +308,10 @@ fun QueryTable(
                 onRemoveButtonClicked = onRemoveButtonClicked,
                 modifier = Modifier.animateItemPlacement()
             )
-            Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
+            Divider(
+                color = ColorConstant._E8E8E8,
+                modifier = Modifier.height(1.dp)
+            )
         }
     }
 }
@@ -327,7 +336,7 @@ fun QueryTableHeaderRow(
             text = "Key",
             modifier = Modifier
                 .padding(horizontal = 15.dp)
-                .weight(weight = 0.3f, fill = true)
+                .weight(weight = 0.25f, fill = true)
                 .align(Alignment.CenterVertically),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -340,7 +349,7 @@ fun QueryTableHeaderRow(
             text = "Value",
             modifier = Modifier
                 .padding(horizontal = 15.dp)
-                .weight(weight = 0.7f, fill = true)
+                .weight(weight = 0.75f, fill = true)
                 .align(Alignment.CenterVertically),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -392,7 +401,7 @@ fun SingleQuery(
             },
             modifier = Modifier
                 .padding(5.dp)
-                .weight(weight = 0.3f, fill = true)
+                .weight(weight = 0.25f, fill = true)
                 .align(Alignment.CenterVertically)
         )
 
@@ -400,7 +409,7 @@ fun SingleQuery(
 
         Row(
             modifier = Modifier
-                .weight(weight = 0.7f, fill = true)
+                .weight(weight = 0.75f, fill = true)
                 .align(Alignment.CenterVertically),
             verticalAlignment = Alignment.CenterVertically
         ) {
