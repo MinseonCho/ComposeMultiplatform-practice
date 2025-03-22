@@ -232,6 +232,10 @@ fun LogContent(
 ) {
     val listState = rememberScrollState()
 
+    LaunchedEffect(logTexts.size) {
+        listState.animateScrollTo(listState.maxValue)
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -290,6 +294,12 @@ fun QueryTable(
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
+
+    LaunchedEffect(queries.size) {
+        if (queries.isNotEmpty()) {
+            listState.animateScrollToItem(queries.lastIndex)
+        }
+    }
 
     Row(modifier = modifier.fillMaxSize()) {
         LazyColumn(
