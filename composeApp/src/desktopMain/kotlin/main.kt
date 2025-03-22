@@ -127,9 +127,8 @@ fun main() = application {
                     contentColor = Color(0xFFF5F5F7),
                     modifier = Modifier
                         .width(55.dp)
-                        .padding(bottom = 10.dp)
+                        .padding(vertical = 10.dp)
                 ) {
-                    Spacer(Modifier.weight(1f))
                     NavigationItem.entries.forEachIndexed { index, navItem ->
                         val isSelected = when {
                             navItem.destination != null -> {
@@ -146,6 +145,10 @@ fun main() = application {
                             }
 
                             else -> false
+                        }
+
+                        if (navItem == NavigationItem.Settings) {
+                            Spacer(Modifier.weight(1f))
                         }
 
                         NavigationRailItem(

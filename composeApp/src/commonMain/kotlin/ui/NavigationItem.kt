@@ -16,17 +16,17 @@ enum class NavigationItem(
     val description: String,
     val destination: NavDestination? = null,
 ) {
-    SavedUrl(
-        unselectedIconRes = Icons.Outlined.StarBorder,
-        selectedIconRes = Icons.Default.Star,
-        description = "SavedUrl",
-        destination = NavDestination.SavedUrl,
-    ),
     Page(
         unselectedIconRes = Icons.Default.AddCircleOutline,
         selectedIconRes = Icons.Default.AddCircle,
         description = "Page",
         destination = NavDestination.Page,
+    ),
+    SavedUrl(
+        unselectedIconRes = Icons.Outlined.StarBorder,
+        selectedIconRes = Icons.Default.Star,
+        description = "SavedUrl",
+        destination = NavDestination.SavedUrl,
     ),
     Settings(
         unselectedIconRes = Icons.Outlined.Settings,
