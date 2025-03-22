@@ -35,10 +35,12 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -71,14 +73,18 @@ private class NoRippleInteractionSource : MutableInteractionSource {
 }
 
 fun main() = application {
-    initKoin()
+    val windowState = rememberWindowState(
+        size = DpSize(width = 1000.dp, height = 600.dp)
+    )
 
+    initKoin()
     Window(
         onCloseRequest = {
             stopKoin() // 앱 종료 시 Koin 정리
             exitApplication()
         },
-        title = "ChoLink Tester🐧"
+        title = "ChoLink Tester🐧",
+        state = windowState
     ) {
         val viewModel = remember {
             MainViewModel()
