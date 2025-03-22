@@ -1,4 +1,6 @@
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.Interaction
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,11 +19,11 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,11 +42,14 @@ import androidx.compose.ui.window.application
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import model.AdbDevice
@@ -54,8 +59,15 @@ import ui.page.InputField
 import ui.page.PageScreen
 import ui.savedurllist.SavedUrlScreen
 import ui.style.ColorConstant
+import ui.style.ColorConstant._848484
 import ui.style.ColorConstant._E6A358
 import ui.utils.CustomDialog
+
+private class NoRippleInteractionSource : MutableInteractionSource {
+    override val interactions: Flow<Interaction> = emptyFlow()
+    override suspend fun emit(interaction: Interaction) {}
+    override fun tryEmit(interaction: Interaction) = true
+}
 
 fun main() = application {
     initKoin()
@@ -65,8 +77,8 @@ fun main() = application {
             stopKoin() // 앱 종료 시 Koin 정리
             exitApplication()
         },
-        title = "ChoLink Tester🐧")
-    {
+        title = "ChoLink Tester🐧"
+    ) {
         val viewModel = remember {
             MainViewModel()
         }
@@ -75,6 +87,8 @@ fun main() = application {
         val sendLogTexts = remember { mutableStateListOf<String>() }
         val coroutineScope = rememberCoroutineScope()
         val navController = rememberNavController()
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route.orEmpty()
 
         LaunchedEffect(Unit) {
             viewModel.eventFlow.collect { event ->
@@ -103,8 +117,6 @@ fun main() = application {
         }
 
         MaterialTheme {
-            var selectedRailItem by remember { mutableIntStateOf(0) }
-
             Row(
                 modifier = Modifier
                     .background(Color(0xFFF5F5F7))
@@ -114,26 +126,51 @@ fun main() = application {
                     containerColor = Color(0xFFF5F5F7),
                     contentColor = Color(0xFFF5F5F7),
                     modifier = Modifier
-                        .width(50.dp)
+                        .width(55.dp)
                         .padding(bottom = 10.dp)
                 ) {
                     Spacer(Modifier.weight(1f))
                     NavigationItem.entries.forEachIndexed { index, navItem ->
+                        val isSelected = when {
+                            navItem.destination != null -> {
+                                val itemRoute = navItem.destination.route
+                                if (itemRoute.contains("{")) {
+                                    currentRoute.startsWith(itemRoute.substringBefore("/{"))
+                                } else {
+                                    currentRoute == itemRoute
+                                }
+                            }
+
+                            navItem == NavigationItem.Settings -> {
+                                showAdbAbsolutePathDialog
+                            }
+
+                            else -> false
+                        }
+
                         NavigationRailItem(
                             icon = {
                                 Icon(
-                                    imageVector = navItem.iconRes,
+                                    imageVector = if (isSelected) {
+                                        navItem.selectedIconRes
+                                    } else {
+                                        navItem.unselectedIconRes
+                                    },
                                     contentDescription = navItem.description,
-                                    tint = Color(0xFF374957),
+                                    tint = _848484,
                                     modifier = Modifier.size(22.dp)
                                 )
                             },
                             label = null,
-                            selected = false,
+                            selected = isSelected,
                             onClick = {
-                                selectedRailItem = index
                                 viewModel.onNavItemClicked(navItem = navItem)
                             },
+                            colors = NavigationRailItemDefaults.colors(
+                                selectedIconColor = Color(0xFFF5F5F7),
+                                unselectedIconColor = Color(0xFFF5F5F7),
+                                indicatorColor = Color(0xFFF5F5F7),
+                            ),
                         )
                     }
                 }
@@ -209,7 +246,7 @@ suspend fun triggerUrl(
     absoluteAdbPath: String,
     adbDevice: AdbDevice?,
     url: String,
-    onError: (String) -> Unit
+    onError: (String) -> Unit,
 ) {
     withContext(Dispatchers.IO) {
         runCatching {
@@ -224,7 +261,7 @@ suspend fun triggerUrl(
             if (errorStream.isNotEmpty()) {
                 throw Exception(errorStream)
             }
-            
+
             val exitCode = process.waitFor()
             if (exitCode != 0) {
                 throw Exception("Command failed with exit code: $exitCode")
@@ -253,7 +290,7 @@ private fun ADBAbsolutePathDialog(
             Text(
                 text = "ADB 설정",
                 fontWeight = FontWeight.Bold,
-                color = ColorConstant._E6A358,
+                color = _E6A358,
                 fontSize = 18.sp
             )
         },
@@ -280,7 +317,7 @@ private fun ADBAbsolutePathDialog(
 
                 if (devices.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(30.dp))
-                    
+
                     Text(
                         text = "연결된 기기 목록이에요. 사용할 기기를 선택해주세요.🍤",
                         fontSize = 14.sp,
@@ -302,7 +339,7 @@ private fun ADBAbsolutePathDialog(
                             ) {
                                 Checkbox(
                                     checked = device.isSelected,
-                                    onCheckedChange = { 
+                                    onCheckedChange = {
                                         onDeviceSelected(device)
                                     },
                                     colors = CheckboxDefaults.colors(
